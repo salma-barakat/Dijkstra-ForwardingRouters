@@ -1,3 +1,6 @@
+import networkx as nx
+import matplotlib.pyplot as plt
+
 class Graph(): 
     def __init__(self, nodes):
         #distance array initialization:
@@ -21,8 +24,15 @@ class Graph():
                 nearestNode_index = v 
         return nearestNode_index
     
+    def printPath(self, parent, j, difference):
+        # Base Case : If j is source
+        if parent[j] == -1 :
+            print(chr(j+97+difference), end=' ')
+            return
+        self.printPath(parent , parent[j], difference)
+        print(chr(j+97+difference), end=' ')
 
-    def dijkstra(self, srcNode):
+    def dijkstra(self, srcNode, difference):
         for i in range(self.nodes):
             #initialize the distances to infinity:
             self.distArray[i] = self.INF
@@ -32,49 +42,76 @@ class Graph():
         #initialize the first distance to 0 (between the first node and itself)
         self.distArray[srcNode] = 0
 
+        #initialize a list to store the visited nodes at each iteration:
+        visited_nodes = []
+        #initialize a list to store the parent of each vertex in the shortest path tree:
+        parent = [-1] * self.nodes
         for i in range(self.nodes):
             # Pick the shortest distance unvisted node 
             # nearestNodeindx is equal to srcNode in first iteration 
             nearestNodeindx = self.nearestNode(self.distArray, self.vistSet) 
             # Put the shortest distance node in the visited nodes set
             self.vistSet[nearestNodeindx] = True
+            # Add the visited node to the list
+            nearestChar = nearestNodeindx+97+difference
+            visited_nodes.append(chr(nearestChar))
 
-            # Update distance only if is the node is unvisited and the total weight of path from src to v 
+            # Update distance only if the node is unvisited and the total weight of path from src to v 
             # through nearestNodeindx is smaller than current value of dist[v]
             for v in range(self.nodes): 
                 if self.graph[nearestNodeindx][v] > 0 and self.vistSet[v] == False:
                     if self.distArray[v] > self.distArray[nearestNodeindx] + self.graph[nearestNodeindx][v]: 
                         self.distArray[v] = self.distArray[nearestNodeindx] + self.graph[nearestNodeindx][v]
+                        parent[v] = nearestNodeindx
         
-        # To print the distances of all nodes:
-        print ("Node \tDistance from 0")
-        for i in range(self.nodes): 
-            print (i, "\t", self.distArray[i])
+            # To print the distances of all nodes:
+            print("Node \tDistance \tPath")
+            for j in range(self.nodes): 
+                print (chr(j+97+difference), "\t", self.distArray[j], "\t\t", end='')
+                self.printPath(parent, j, difference)
+                print()
 
+            print("Destination \tLink")
+            for j in range(self.nodes): 
+                print (chr(j+97+difference), "\t\t", end='')
+                self.printPath(parent, j, difference)
+                print()
+            # To print the visited nodes at each iteration:
+            for j in range(self.nodes): 
+                print (chr(j+97+difference), "\t", self.distArray[j], "\t\t", end='')
+                self.printPath(parent, j, difference)
+                print()print("Visited nodes:", visited_nodes)
 
-# #Display our table
-# ourGraph = Graph(7) 
-# ourGraph.graph = 
- #          0  1  2  3  4  5  6
-#       0 [[0, 2, 6, 0, 0, 0, 0], 
-#       1  [2, 0, 0, 5, 0, 0, 0], 
-#       2  [6, 6, 0, 8, 0, 0, 0], 
-#       3  [0, 0, 8, 0, 10, 15, 0], 
-#       4  [0, 0, 0, 10, 0, 6, 2], 
-#       5  [0, 0, 0, 15, 6, 0, 6], 
-#       6  [0, 0, 0, 0, 2, 6, 0],
-#         ]; 
-# ourGraph.dijkstra(0)
-
+# Get the number of nodes and edges from user input
 line1 = input("Enter the number of nodes and edges separated by comma:\n")
 line1 = line1.split(",")
 nNodes = int(line1[0])
 nEdges = int(line1[1])
+
 # Initializing a graph:
 g = Graph(nNodes)
-print("For each edge, enter the src_node, dest_node, weight:\n")
+print("For each edge, enter the src_node, dest_node, weight:")
+G = nx.Graph()
+x = True
 for i in range(nEdges):
     line = input()
     line = line.split(",")
-    g.graph[int(line[0])][int(line[1])] = int(line[2])
-g.dijkstra(0)
+    if x:
+        difference = ord(line[0])-97
+        print("changed difference")
+        x = False
+    g.graph[ord(line[0])-97-difference][ord(line[1])-97-difference] = int(line[2])
+    G.add_edge(line[0], line[1], weight=int(line[2]))
+
+# Draw the graph
+pos = nx.spring_layout(G)
+nx.draw(G, pos, with_labels=True)
+# Draw the edge labels on top of the graph
+edge_labels = nx.get_edge_attributes(G, 'weight')
+nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+# Draw the shortest path on top of the graph
+nx.draw_networkx_edges(G, pos)
+
+g.dijkstra(0, difference)
+plt.show()
+
