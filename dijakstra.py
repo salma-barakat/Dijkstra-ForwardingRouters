@@ -9,17 +9,17 @@ class Graph():
         self.vistSet = [0 for i in range(nodes)]
         #initializing the number of nodes:
         self.nodes = nodes
-        self.INF = float('inf') # initial distance between nodes
+        self.INF = 1000000 # initial distance between nodes
         #initializing the graph matrix
         self.graph = [[0 for column in range(nodes)]  
                     for row in range(nodes)]
         
     def nearestNextNode(self, distArray, vistSet): 
         # Initilaize minimum distance for nearest node:
-        min = float('inf')
+        min = 1000000
         # Search for nearest unvisited node:
         for v in range(self.nodes): 
-            if distArray[v] < min and vistSet[v] == False: 
+            if distArray[v] <= min and vistSet[v] == False: 
                 min = distArray[v] 
                 nearestNextNode_index = v 
         return nearestNextNode_index
@@ -32,21 +32,13 @@ class Graph():
                 min = self.graph[nodeIndx][k]
                 parnt = k
         return min, parnt
-    
-    # def printPath(self, parent, j, difference):
-    #     # Base Case : If j is source
-    #     if parent[j] == -1 :
-    #         print(chr(j+97+difference), end=' ')
-    #         return
-    #     self.printPath(parent , parent[j], difference)
-    #     print(chr(j+97+difference), end=' ')
 
     def dijkstra(self, srcNode, difference):
         # to store the parent of each node, initialized with infinity:
-        parent = [self.INF for i in range(self.nodes)] 
+        parent = [chr(difference+97) for i in range(self.nodes)] 
         for i in range(self.nodes):
             #initialize the distances to infinity:
-            self.distArray[i] = self.INF
+            self.distArray[i] = 1000000
             #set the visited nodes to false for each node:
             self.vistSet[i] = False
         #initialize the first distance to 0 (between the first node and itself)
@@ -74,9 +66,26 @@ class Graph():
                         self.distArray[v] = self.distArray[nearestNextNodeindx] + self.graph[nearestNextNodeindx][v]
                         parent[v] = chr(nearestChar)
                 if v > 0: 
-                    print(self.distArray[v],",",parent[v],"\t\t ", end='')
+                    if self.distArray[v] == 1000000:
+                        print("ꝏ ,",parent[v],"\t\t ", end='')
+                    else:    
+                        print(self.distArray[v],",",parent[v],"\t\t ", end='')
             print()
-        return parent
+
+        print("-------------------------------------------")
+        print("Destination\tLink")
+        for b in range(1, len(visited_nodes)):
+            print(visited_nodes[b], "\t\t(u,", end= '')
+            prev = visited_nodes[b]
+            predecessor = parent[b]
+            # c = 0
+            while(predecessor != 'u'):
+                prev = predecessor
+                predecessor = parent[ord(predecessor)-97-difference]
+
+            print(prev,")")
+
+        return parent,visited_nodes
 
 #get input from text file:
 with open('input.txt', 'r') as file:
@@ -90,7 +99,6 @@ with open('input.txt', 'r') as file:
             first = 0
             g = Graph(nNodes)
             G = nx.Graph()
-            Glink = nx.Graph()
             x = True
             continue
         if x:
@@ -103,42 +111,27 @@ with open('input.txt', 'r') as file:
 # Close the file
 file.close()
 
-parents = g.dijkstra(0, difference)
+parent,visited = g.dijkstra(0, difference)
 
-# # Draw the graph
-# pos = nx.spring_layout(G)
-# nx.draw(G, pos, with_labels=True)
-# # Draw the edge labels on top of the graph
-# edge_labels = nx.get_edge_attributes(G, 'weight')
-# nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-# # Draw the shortest path on top of the graph
-# nx.draw_networkx_edges(G, pos)
+# Draw the graph
+pos = nx.spring_layout(G)
+nx.draw(G, pos, with_labels=True)
+# Draw the edge labels on top of the graph
+edge_labels = nx.get_edge_attributes(G, 'weight')
+nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+nx.draw_networkx_edges(G, pos)
 
+plt.figure()
 
-for i in range(nNodes):
-    G.add_edge(g.graph[i][parents[i]])
-
-# for start_node in G.nodes():
-#     for end_node in G.nodes():
-#         if start_node != end_node:
-#             shortest_path = nx.shortest_path(G, start_node, end_node)
-#             edges = [(shortest_path[i], shortest_path[i+1]) for i in range(len(shortest_path)-1)]
-#             G.add_edges_from(edges)
+# draw shortest path only:
 pos = nx.spring_layout(G)
 nx.draw_networkx_nodes(G, pos)
-nx.draw_networkx_edges(G, pos, edge_color='r')
-nx.draw_networkx_labels(G, pos)
-
-
-# # Compute the shortest path using Dijkstra's algorithm
-# path = nx.dijkstra_path(G, source='u', target='z')
-# # Draw the graph
-# pos = nx.spring_layout(G)
-# nx.draw(G, pos, with_labels=True)
-# # Draw the shortest path on top of the graph
-# path_edges = list(zip(path, path[1:]))
-# nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='r', width=2)
-
+nx.draw_networkx_labels(G, pos, labels={n: n for n in G.nodes()}, font_size=12, font_color="w", font_weight="bold")
+for a in range(len(visited)):
+    path = nx.dijkstra_path(G, visited[0], visited[a])
+    nx.draw_networkx_edges(G, pos, edgelist=list(zip(path, path[1:])), edge_color='r', width=2)
 
 plt.show()
+
+
 
