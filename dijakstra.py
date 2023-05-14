@@ -76,6 +76,7 @@ class Graph():
                 if v > 0: 
                     print(self.distArray[v],",",parent[v],"\t\t ", end='')
             print()
+        return parent
 
 #get input from text file:
 with open('input.txt', 'r') as file:
@@ -89,6 +90,7 @@ with open('input.txt', 'r') as file:
             first = 0
             g = Graph(nNodes)
             G = nx.Graph()
+            Glink = nx.Graph()
             x = True
             continue
         if x:
@@ -101,15 +103,42 @@ with open('input.txt', 'r') as file:
 # Close the file
 file.close()
 
-# Draw the graph
-pos = nx.spring_layout(G)
-nx.draw(G, pos, with_labels=True)
-# Draw the edge labels on top of the graph
-edge_labels = nx.get_edge_attributes(G, 'weight')
-nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-# Draw the shortest path on top of the graph
-nx.draw_networkx_edges(G, pos)
+parents = g.dijkstra(0, difference)
 
-g.dijkstra(0, difference)
+# # Draw the graph
+# pos = nx.spring_layout(G)
+# nx.draw(G, pos, with_labels=True)
+# # Draw the edge labels on top of the graph
+# edge_labels = nx.get_edge_attributes(G, 'weight')
+# nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+# # Draw the shortest path on top of the graph
+# nx.draw_networkx_edges(G, pos)
+
+
+for i in range(nNodes):
+    G.add_edge(g.graph[i][parents[i]])
+
+# for start_node in G.nodes():
+#     for end_node in G.nodes():
+#         if start_node != end_node:
+#             shortest_path = nx.shortest_path(G, start_node, end_node)
+#             edges = [(shortest_path[i], shortest_path[i+1]) for i in range(len(shortest_path)-1)]
+#             G.add_edges_from(edges)
+pos = nx.spring_layout(G)
+nx.draw_networkx_nodes(G, pos)
+nx.draw_networkx_edges(G, pos, edge_color='r')
+nx.draw_networkx_labels(G, pos)
+
+
+# # Compute the shortest path using Dijkstra's algorithm
+# path = nx.dijkstra_path(G, source='u', target='z')
+# # Draw the graph
+# pos = nx.spring_layout(G)
+# nx.draw(G, pos, with_labels=True)
+# # Draw the shortest path on top of the graph
+# path_edges = list(zip(path, path[1:]))
+# nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='r', width=2)
+
+
 plt.show()
 
