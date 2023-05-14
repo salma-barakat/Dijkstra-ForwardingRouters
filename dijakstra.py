@@ -9,23 +9,23 @@ class Graph():
         self.vistSet = [0 for i in range(nodes)]
         #initializing the number of nodes:
         self.nodes = nodes
-        self.INF = 1000000 # initial distance between nodes
+        self.INF = float('inf') # initial distance between nodes
         #initializing the graph matrix
         self.graph = [[0 for column in range(nodes)]  
                     for row in range(nodes)]
         
-    def nearestNode(self, distArray, vistSet): 
+    def nearestNextNode(self, distArray, vistSet): 
         # Initilaize minimum distance for nearest node:
-        min = self.INF
+        min = float('inf')
         # Search for nearest unvisited node:
         for v in range(self.nodes): 
             if distArray[v] < min and vistSet[v] == False: 
                 min = distArray[v] 
-                nearestNode_index = v 
-        return nearestNode_index
+                nearestNextNode_index = v 
+        return nearestNextNode_index
     
     def getParent(self, nodeIndx, difference):
-        min = 1000000
+        min = float('inf')
         parnt = 0
         for k in range(self.nodes):
             if self.graph[nodeIndx][k]<min:
@@ -33,87 +33,73 @@ class Graph():
                 parnt = k
         return min, parnt
     
-    def printPath(self, parent, j, difference):
-        # Base Case : If j is source
-        if parent[j] == -1 :
-            print(chr(j+97+difference), end=' ')
-            return
-        self.printPath(parent , parent[j], difference)
-        print(chr(j+97+difference), end=' ')
+    # def printPath(self, parent, j, difference):
+    #     # Base Case : If j is source
+    #     if parent[j] == -1 :
+    #         print(chr(j+97+difference), end=' ')
+    #         return
+    #     self.printPath(parent , parent[j], difference)
+    #     print(chr(j+97+difference), end=' ')
 
     def dijkstra(self, srcNode, difference):
+        # to store the parent of each node, initialized with infinity:
+        parent = [self.INF for i in range(self.nodes)] 
         for i in range(self.nodes):
             #initialize the distances to infinity:
             self.distArray[i] = self.INF
-            #set the visited nodes set to false for each node:
+            #set the visited nodes to false for each node:
             self.vistSet[i] = False
-
         #initialize the first distance to 0 (between the first node and itself)
         self.distArray[srcNode] = 0
 
         #initialize a list to store the visited nodes at each iteration:
         visited_nodes = []
-        #initialize a list to store the parent of each vertex in the shortest path tree:
-        parent = [-1] * self.nodes
         print("Step  \tN' \tD(v),p(v) \tD(w),p(w) \tD(x),p(x) \tD(y),p(y) \tD(z),p(z) ")
-        for i in range(self.nodes):
-            # Pick the shortest distance unvisted node 
-            # nearestNodeindx is equal to srcNode in first iteration 
-            nearestNodeindx = self.nearestNode(self.distArray, self.vistSet) 
-            # Put the shortest distance node in the visited nodes set
-            self.vistSet[nearestNodeindx] = True
+        for i in range(self.nodes): # 6 steps
+            # Pick the shortest distance next unvisted node 
+            # nearestNextNodeindx is equal to srcNode in first iteration 
+            nearestNextNodeindx = self.nearestNextNode(self.distArray, self.vistSet) 
+            # Put the shortest distance node in the visited nodes set:
+            self.vistSet[nearestNextNodeindx] = True
             # Add the visited node to the list
-            nearestChar = nearestNodeindx+97+difference
+            nearestChar = nearestNextNodeindx+97+difference
             visited_nodes.append(chr(nearestChar))
             print(i,"    ",''.join(visited_nodes),"\t",end='')
+
             # Update distance only if the node is unvisited and the total weight of path from src to v 
-            # through nearestNodeindx is smaller than current value of dist[v]
-            
+            # through nearestNextNodeindx is smaller than current value of dist[v]
             for v in range(self.nodes): 
-                if self.graph[nearestNodeindx][v] > 0 and self.vistSet[v] == False:
-                    if self.distArray[v] > self.distArray[nearestNodeindx] + self.graph[nearestNodeindx][v]: 
-                        self.distArray[v] = self.distArray[nearestNodeindx] + self.graph[nearestNodeindx][v]
-                        # parent[v] = nearestNodeindx
+                if self.graph[nearestNextNodeindx][v] > 0:
+                    if self.distArray[v] > self.distArray[nearestNextNodeindx] + self.graph[nearestNextNodeindx][v]: 
+                        self.distArray[v] = self.distArray[nearestNextNodeindx] + self.graph[nearestNextNodeindx][v]
+                        parent[v] = chr(nearestChar)
                 if v > 0: 
-                    prnt = chr(nearestNodeindx+97+difference)
-                    print(self.distArray[v],",",prnt,"\t\t ", end='')
-                        #print("Destination \tLink")
-                        # # for j in range(self.nodes): 
-                        # print (chr(v+97+difference), "\t\t", end='')
-                        # self.printPath(parent, v, difference)
+                    print(self.distArray[v],",",parent[v],"\t\t ", end='')
             print()
-            
-            # # To print the distances of all nodes:
-            # print("Node \tDistance \tPath")
-            # for j in range(self.nodes): 
-            #     print (chr(j+97+difference), "\t", self.distArray[j], "\t\t", end='')
-            #     self.printPath(parent, j, difference)
-            #     print()
 
-            # To print the visited nodes at each iteration:
-            
-            
-           # print("Visited nodes:", visited_nodes)
+#get input from text file:
+with open('input.txt', 'r') as file:
+    first = 1
+    # Read each line of the file
+    for line in file:
+        line = line.split(",")
+        if first:
+            nNodes = int(line[0])
+            nEdges = int(line[1])
+            first = 0
+            g = Graph(nNodes)
+            G = nx.Graph()
+            x = True
+            continue
+        if x:
+            difference = ord(line[0])-97
+            x = False
+        g.graph[ord(line[0])-97-difference][ord(line[1])-97-difference] = int(line[2])
+        G.add_edge(line[0], line[1], weight=int(line[2]))
+        g.graph[ord(line[1])-97-difference][ord(line[0])-97-difference] = int(line[2])
 
-# Get the number of nodes and edges from user input
-line1 = input("Enter the number of nodes and edges separated by comma:\n")
-line1 = line1.split(",")
-nNodes = int(line1[0])
-nEdges = int(line1[1])
-
-# Initializing a graph:
-g = Graph(nNodes)
-print("For each edge, enter the src_node, dest_node, weight:")
-G = nx.Graph()
-x = True
-for i in range(nEdges):
-    line = input()
-    line = line.split(",")
-    if x:
-        difference = ord(line[0])-97
-        x = False
-    g.graph[ord(line[0])-97-difference][ord(line[1])-97-difference] = int(line[2])
-    G.add_edge(line[0], line[1], weight=int(line[2]))
+# Close the file
+file.close()
 
 # Draw the graph
 pos = nx.spring_layout(G)
